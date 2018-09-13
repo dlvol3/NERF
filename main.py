@@ -4,10 +4,13 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn import metrics
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn import cross_validation
 from sklearn.preprocessing import LabelEncoder
+from sklearn.datasets import make_classification
+
+
 #%%
 gdscic = pd.read_csv('P:/VM/Drug/data/output/GDSCIC50.csv')
 ccleic = pd.read_csv('P:/VM/Drug/data/output/CCLEIC50.csv')
@@ -147,9 +150,45 @@ feature_importances = pd.DataFrame({'feature': features, 'importance': feature_i
 feature_importances
 train.shape
 # Make predictions on the test data
-test_labels = lapaG.loc["SENRES"]
+test_labels = lapaG.loc[:, "SENRES"]
 cell_lines_lapaG = lapaG.loc[:, "gdsc.name"]
-lapaGR = lapaC.drop(['ccle.name','SENRES'], axis=1)
-predictions = random_forest.predict_proba(test)[:, 1]
 
+if 'SENRES' in lapaG.columns:
+    test = lapaG.drop(['SENRES'], axis=1)
+else:
+    test = lapaG.copy()
+
+test = test.drop(['gdsc.name'], axis=1)
+predictions = random_forest.predict_proba(test)[:, 1]
+predictions
+
+confusion_matrix(test_labels, predictions)
+#%%
+random_forest.oob_score_
 #
+test_pred = random_forest.predict(test)
+random_forest.decision_path(test)
+len(list(test_pred))
+print(confusion_matrix(test_labels, test_pred))
+random_forest.get_params(deep=True)
+visualize_classifier(random_forest, train, test)
+
+
+
+#%%
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import export_graphviz
+import graphviz
+tree1 = random_forest.estimators_[5]
+from sklearn import tree
+dotdata = export_graphviz(tree1, out_file=None,
+                feature_names=train.columns,
+                rounded=True, proportion=False,
+                precision=2,filled=True)
+
+graph5 = graphviz.Source(dotdata)
+graph5.render("test")
+from subprocess import call
+import os
+dir_path = os.getcwd()
+
