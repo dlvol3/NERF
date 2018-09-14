@@ -192,3 +192,4 @@ from subprocess import call
 import os
 dir_path = os.getcwd()
 
+tree1.tree_.impurity
