@@ -10,10 +10,16 @@ from sklearn import cross_validation
 from sklearn.preprocessing import LabelEncoder
 from sklearn.datasets import make_classification
 
-
+import platform
 #%%
-gdscic = pd.read_csv('P:/VM/Drug/data/output/GDSCIC50.csv')
-ccleic = pd.read_csv('P:/VM/Drug/data/output/CCLEIC50.csv')
+if platform.system() == 'Windows':
+    # Windows in the lab
+    gdscic = pd.read_csv('P:/VM/Drug/data/output/GDSCIC50.csv')
+    ccleic = pd.read_csv('P:/VM/Drug/data/output/CCLEIC50.csv')
+if platform.system() == 'Darwin':
+    # My mac
+    gdscic = pd.read_csv('/Users/yue/Pyc/Drug2018Sep/data/GDSCIC50.csv')
+    ccleic = pd.read_csv('/Users/yue/Pyc/Drug2018Sep/data/CCLEIC50.csv')
 
 # Extract the Lat. Drug data from both of the datasets
 gdscic.head(5)
@@ -136,7 +142,9 @@ else:
     train = lapaC.copy()
 train.iloc[0:3,0:3]
 features = list(train.columns)
-train["SENRES"] = train_labels
+# train["SENRES"] = train_labels
+
+
 
 #%%
 
@@ -159,7 +167,7 @@ else:
     test = lapaG.copy()
 
 test = test.drop(['gdsc.name'], axis=1)
-predictions = random_forest.predict_proba(test)[:, 1]
+predictions = random_forest.predict(test)
 predictions
 
 confusion_matrix(test_labels, predictions)
@@ -193,3 +201,11 @@ import os
 dir_path = os.getcwd()
 
 tree1.tree_.impurity
+
+
+#%%
+# Check cross-validation result
+from sklearn.model_selection import cross_val_score
+
+print(np.mean(cross_val_score(random_forest, train, train_labels, cv=10)))
+print(cross_val_score(random_forest, train, train_labels, cv=10))
