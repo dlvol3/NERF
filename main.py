@@ -128,7 +128,7 @@ print('\nMost Negative Correlations:\n', correlations.head(15))
 # Define the RF
 random_forest = RandomForestClassifier(n_estimators=1000, random_state=123, max_features="sqrt",
                                        criterion="gini", oob_score=True, n_jobs=10, max_depth=12,
-                                       verbose=0, class_weight="balanced")
+                                       verbose=0)
 #%%
 # Drop SENRES
 
@@ -187,7 +187,7 @@ visualize_classifier(random_forest, train, test)
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
 import graphviz
-tree1 = random_forest.estimators_[5]
+tree1 = random_forest.estimators_[2]
 from sklearn import tree
 dotdata = export_graphviz(tree1, out_file=None,
                 feature_names=train.columns,
@@ -205,7 +205,27 @@ tree1.tree_.impurity
 
 #%%
 # Check cross-validation result
-from sklearn.model_selection import cross_val_score
+# from sklearn.model_selection import cross_val_score
 
-print(np.mean(cross_val_score(random_forest, train, train_labels, cv=10)))
-print(cross_val_score(random_forest, train, train_labels, cv=10))
+# print(np.mean(cross_val_score(random_forest, train, train_labels, cv=10)))
+# print(cross_val_score(random_forest, train, train_labels, cv=10))
+
+#%%
+# Module for the network approaches
+# Extract the information in the decision tree
+
+n_nodes = random_forest.estimators_[2].tree_.node_count
+children_left = random_forest.estimators_[2].tree_.children_left
+children_right = random_forest.estimators_[2].tree_.children_right
+feature = random_forest.estimators_[2].tree_.feature
+threshold = random_forest.estimators_[2].tree_.threshold
+testy = test.iloc[1:3]
+decision_p = random_forest.decision_path(testy)
+leave_p = random_forest.apply(test)
+decision_p[0].indices.shape
+testy.shape
+print(decision_p)
+#%%
+for rf_tree in random_forest.estimator:
+    n_nodes = random_forest.estimators_[1].tree_.node_count
+    children_left = random_forest.estimators_[1].tree_.children_left
