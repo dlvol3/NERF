@@ -202,7 +202,7 @@ dir_path = os.getcwd()
 
 tree1.tree_.impurity
 
-
+print(dotdata)
 #%%
 # Check cross-validation result
 # from sklearn.model_selection import cross_val_score
@@ -226,6 +226,16 @@ decision_p[0].indices.shape
 testy.shape
 print(decision_p)
 #%%
+print(tree1.tree_.children_left)
+
+
+#%%
 for rf_tree in random_forest.estimator:
     n_nodes = random_forest.estimators_[1].tree_.node_count
     children_left = random_forest.estimators_[1].tree_.children_left
+#%%
+# Tree pre-order traversal
+for i in range(tree1.tree_.node_count):
+    print("%s, %s, %s"%(i, tree1.tree_.children_left[i], tree1.tree_.children_right[i]))
+#%%
+print(decision_p[1])
