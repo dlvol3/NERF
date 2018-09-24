@@ -1,9 +1,7 @@
 # Project of Yue Zhang's PhD
 
 **N**etwork **E**xplainer of **R**andom **F**orest, NERF, is an interpreter module of
-standard random forest classifiers in [scikit learn](http://scikit-learn.org/st
-able/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ense
-mble.RandomForestClassifier).
+standard random forest classifiers in [scikit learn](http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier).
 
 ## Log
 
