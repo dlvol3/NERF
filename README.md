@@ -8,5 +8,5 @@ standard random forest classifiers in [scikit learn](http://scikit-learn.org/sta
 **Finished** *In progress*
 + Test RF using CCLE and GDSC data via H2O (**2018Aug**)
 + Transfer Laptinib model into python (**2018Sep**)
-+ Extract tree structure info (*2018Sep*)
-+ Build the prototype of NERF using CCLE data (*2018Sep*)
++ Extract tree structure info (**2018Sep**)
++ Build the prototype of NERF using CCLE data (*2018Oct*)
