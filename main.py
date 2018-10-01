@@ -126,7 +126,7 @@ print('\nMost Negative Correlations:\n', correlations.head(15))
 # Random forest 1st
 
 # Define the RF
-random_forest = RandomForestClassifier(n_estimators=1000, random_state=123, max_features="sqrt",
+random_forest = RandomForestClassifier(n_estimators=200, random_state=123, max_features="sqrt",
                                        criterion="gini", oob_score=True, n_jobs=10, max_depth=12,
                                        verbose=0)
 #%%
@@ -239,3 +239,79 @@ for i in range(tree1.tree_.node_count):
     print("%s, %s, %s"%(i, tree1.tree_.children_left[i], tree1.tree_.children_right[i]))
 #%%
 print(decision_p[1])
+
+#%%
+# Generating the allinone table
+
+
+def flatforest(rf, testdf):
+    tree_infotable = pd.DataFrame()
+
+    for t in range(rf.n_estimators):
+        # Generate the info table for trees
+
+        # Preparation
+
+        # Node index # Count from leftleft first /list
+        nodeIndex = list(range(0, rf.estimators_[t].tree_.node_count, 1))
+        # Node index forest level
+        nodeInForest = list(map(lambda x: x + rf.decision_path(testdf)[1].item(t), nodeIndex))
+        # lc # left children of each node, by index ^ /ndarray 1D
+        lc = rf.estimators_[t].tree_.children_left
+        # rc # right children of each node, by index ^ /ndarray 1D
+        rc = rf.estimators_[t].tree_.children_right
+        # Proportion of sample in each nodes  /ndarray +2D add later
+        # TODO if the pv info is needed later for the weighted GS score, re-calculated it. No need to add it into the table
+        pv = rf.estimators_[t].tree_.value
+        # Feature index, by index /1d array
+        featureIndex = rf.estimators_[t].tree_.feature
+        # Feature threshold, <= %d %threshold
+        featureThreshold = rf.estimators_[t].tree_.threshold
+        # Gini impurity of the node, by index
+        gini = rf.estimators_[t].tree_.impurity
+        # Tree index
+        treeIndex = t+1
+        testlist = pd.DataFrame(
+            {'node_index': nodeIndex,
+             'left_c': lc,
+             'right_c': rc,
+             'feature_index': featureIndex,
+             'feature_threshold': featureThreshold,
+             'gini': gini,
+             'tree_index': treeIndex,
+             'nodeInForest': nodeInForest
+             })
+
+        # Calculation of the default gini gain
+        GSlist = list()
+        nodeType = list()
+        for i in range(rf.estimators_[t].tree_.node_count):
+            if testlist.loc[:, 'feature_index'][i] == -2:
+                GSlist.append(-1)
+                nodeType.append("leaf_node")
+                continue  # Next if node if leaf
+
+            ri = testlist.loc[:, 'right_c'][i]  # right child index of node i
+            li = testlist.loc[:, 'left_c'][i]  # left child index of node i
+
+            GS_index = testlist.loc[:, 'gini'][i] \
+                - np.sum(pv[li])/np.sum(pv[i])*testlist.loc[:, 'gini'][li] \
+                - np.sum(pv[ri])/np.sum(pv[i])*testlist.loc[:, 'gini'][ri]
+
+            GSlist.append(GS_index)
+            nodeType.append("decision_node")
+
+        testlist['GS'] = pd.Series(GSlist).values
+        testlist['node_type'] = pd.Series(nodeType).values
+
+        tree_infotable = pd.concat([tree_infotable, testlist])
+    print("Forest %s flatted, matrix generate with %d row and %d columns" % (rf, tree_infotable.shape[0],
+                                                                             tree_infotable[1]))
+    return tree_infotable
+#%%
+
+
+flatforest(random_forest, testy)
+
+#%%
+ft = tree_infotable
