@@ -283,30 +283,30 @@ def flatforest(rf, testdf):
              })
 
         # Calculation of the default gini gain
-        GSlist = list()
-        nodeType = list()
-        for i in range(rf.estimators_[t].tree_.node_count):
-            if testlist.loc[:, 'feature_index'][i] == -2:
-                GSlist.append(-1)
-                nodeType.append("leaf_node")
+        gslist = list()
+        nodetype = list()
+        for ii in range(rf.estimators_[t].tree_.node_count):
+            if testlist.loc[:, 'feature_index'][ii] == -2:
+                gslist.append(-1)
+                nodetype.append("leaf_node")
                 continue  # Next if node if leaf
 
-            ri = testlist.loc[:, 'right_c'][i]  # right child index of node i
-            li = testlist.loc[:, 'left_c'][i]  # left child index of node i
+            ri = testlist.loc[:, 'right_c'][ii]  # right child index of node i
+            li = testlist.loc[:, 'left_c'][ii]  # left child index of node i
 
-            GS_index = testlist.loc[:, 'gini'][i] \
-                - np.sum(pv[li])/np.sum(pv[i])*testlist.loc[:, 'gini'][li] \
-                - np.sum(pv[ri])/np.sum(pv[i])*testlist.loc[:, 'gini'][ri]
+            gs_index = testlist.loc[:, 'gini'][ii] \
+                - np.sum(pv[li])/np.sum(pv[ii])*testlist.loc[:, 'gini'][li] \
+                - np.sum(pv[ri])/np.sum(pv[ii])*testlist.loc[:, 'gini'][ri]
 
-            GSlist.append(GS_index)
-            nodeType.append("decision_node")
+            gslist.append(gs_index)
+            nodetype.append("decision_node")
 
-        testlist['GS'] = pd.Series(GSlist).values
-        testlist['node_type'] = pd.Series(nodeType).values
+        testlist['GS'] = pd.Series(gslist).values
+        testlist['node_type'] = pd.Series(nodetype).values
 
         tree_infotable = pd.concat([tree_infotable, testlist])
     print("Forest %s flatted, matrix generate with %d row and %d columns" % (rf, tree_infotable.shape[0],
-                                                                             tree_infotable[1]))
+                                                                             tree_infotable.shape[1]))
     return tree_infotable
 #%%
 
