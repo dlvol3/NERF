@@ -289,7 +289,7 @@ def flatforest(rf, testdf):
             if testlist.loc[:, 'feature_index'][ii] == -2:
                 gslist.append(-1)
                 nodetype.append("leaf_node")
-                continue  # Next if node if leaf
+                continue  # Next if node is leaf
 
             ri = testlist.loc[:, 'right_c'][ii]  # right child index of node i
             li = testlist.loc[:, 'left_c'][ii]  # left child index of node i
@@ -311,8 +311,8 @@ def flatforest(rf, testdf):
         sample_ceiling = rf.decision_path(testdf)[0].indptr[s_index + 1]  # The ceiling hit index of the current sample
         raw_hits = pd.DataFrame()
         for hit_index in range(sample_ceiling):  # Loop through the hits of the current sample
-            hit = tree_infotable.loc[FF['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
-                        ['feature_index', 'GS', 'tree_index']]
+            hit = tree_infotable.loc[tree_infotable['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
+                        ['feature_index', 'GS', 'tree_index','feature_threshold']]
             hit['sample_index'] = pd.Series(s_index).values
             raw_hits = pd.concat([raw_hits, hit])
 
@@ -327,14 +327,12 @@ TIE = flatforest(random_forest, testy)
 
 
 #%%
-ed = pd.DataFrame()
-temp = FF.loc[FF['nodeInForest'] == 65, ['feature_index', 'GS', 'tree_index']]
-sss = 10
-ed = pd.concat([temp, temp])
-temp['sample_index'] = pd.Series(sss).values
+list(range(random_forest.decision_path(testy)[0].indptr.shape[0]))
 #%%
-# Put the decision path together with the tree information
+# All possible pairs generator
 
+raw_hits
 
-
+max(raw_hits.loc[:, 'tree_index'])
+for n in range(max)
 
