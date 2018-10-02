@@ -219,10 +219,10 @@ children_left = random_forest.estimators_[2].tree_.children_left
 children_right = random_forest.estimators_[2].tree_.children_right
 feature = random_forest.estimators_[2].tree_.feature
 threshold = random_forest.estimators_[2].tree_.threshold
-testy = test.iloc[1:3]
+testy = train.iloc[[2,4]]
 decision_p = random_forest.decision_path(testy)
 leave_p = random_forest.apply(test)
-decision_p[0].indices.shape
+decision_p[0].indices
 testy.shape
 print(decision_p)
 #%%
@@ -245,7 +245,10 @@ print(decision_p[1])
 
 
 def flatforest(rf, testdf):
+    from time import time
+    tt = time()
     tree_infotable = pd.DataFrame()
+    raw_hits = pd.DataFrame()
 
     for t in range(rf.n_estimators):
         # Generate the info table for trees
@@ -307,32 +310,69 @@ def flatforest(rf, testdf):
         tree_infotable = pd.concat([tree_infotable, testlist])
     print("Forest %s flatted, matrix generate with %d rows and %d columns" % (rf, tree_infotable.shape[0],
                                                                              tree_infotable.shape[1]))
+    print("Run time for extracting tree information:")
+    print(time() - tt)
+
+    tt2 = time()
+
     for s_index in range(rf.decision_path(testdf)[0].indptr.shape[0] - 1):  # Loop on samples for prediction
         sample_ceiling = rf.decision_path(testdf)[0].indptr[s_index + 1]  # The ceiling hit index of the current sample
-        raw_hits = pd.DataFrame()
-        for hit_index in range(sample_ceiling):  # Loop through the hits of the current sample
+        sample_floor = rf.decision_path(testdf)[0].indptr[s_index]
+        hitall = pd.DataFrame()
+        predictlist = list()   # Store the predictions among the forest for a certain sample
+        treelist = list()
+        samplelist = s_index
+        predictlist_for_all = pd.DataFrame()
+        for ttt in range(rf.n_estimators):
+            pred_s_t = rf.estimators_[ttt].predict(testy)[s_index]
+            predictlist.append(pred_s_t)
+            treelist.append(ttt)
+        predictlist_for_sample = pd.DataFrame(
+            {'prediction': predictlist,
+             'tree index': treelist,
+             'sample': samplelist
+             })
+        predictlist_for_sample['matching'] = np.where(predictlist_for_sample['prediction'] ==
+                                                   random_forest.predict(testy)[predictlist_for_sample['sample']], 'match', 'not_matching')
+        predictlist_for_all = pd.concat([predictlist_for_all, predictlist_for_sample])
+
+        for hit_index in range(sample_floor, sample_ceiling):  # Loop through the hits of the current sample
             hit = tree_infotable.loc[tree_infotable['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
                         ['feature_index', 'GS', 'tree_index','feature_threshold']]
             hit['sample_index'] = pd.Series(s_index).values
-            raw_hits = pd.concat([raw_hits, hit])
+            hitall = pd.concat([hitall, hit])
+        raw_hits = pd.concat([raw_hits, hitall])
 
     df = list()
-    df.extend((tree_infotable, raw_hits))
-    print("All node used for predicting samples in %s is extracted" % testdf)
+    df.extend((tree_infotable, raw_hits, predictlist_for_all))
+    print("All node used for predicting samples extracted")
+    print("Run time for generate the decision table:")
+    print(time() - tt2)
+    print("Total run time:")
+    print(time() - tt)
     return df
 #%%
-
+# random_forest.predict(testy)[1]
 
 TIE = flatforest(random_forest, testy)
 
 
 #%%
-list(range(random_forest.decision_path(testy)[0].indptr.shape[0]))
+testy.shape
+random_forest.decision_path(testy)[0].indices
 #%%
 # All possible pairs generator
-
+# TODO get rid of the leaves
+# TODO give the tree a index?
+# TODO Same to previous one, give sample a index to loop with
 raw_hits
+max(raw_hits.loc[:, 'sample_index'])  # Number of samples
+for s_in in range(max(raw_hits.loc[:, 'sample_index'])):
+    single_tree = df[1].loc[df[1]['sample_index' == s_in],]#  TODO columns add or not?
+    for t_in in range(max(single_tree))
 
-max(raw_hits.loc[:, 'tree_index'])
-for n in range(max)
+
+max(raw_hits.loc[:, 'tree_index'])  # 200 trees in the test case
+for n in range(max(raw_hits.loc[:, 'tree_index'])):
+
 
