@@ -261,7 +261,7 @@ def flatforest(rf, testdf):
         # rc # right children of each node, by index ^ /ndarray 1D
         rc = rf.estimators_[t].tree_.children_right
         # Proportion of sample in each nodes  /ndarray +2D add later
-        # TODO if the pv info is needed later for the weighted GS score, re-calculated it. No need to add it into the table
+        # TODO if the pv info is needed for the weighted GS score, re-calculate. No need to add it into the table.
         pv = rf.estimators_[t].tree_.value
         # Feature index, by index /1d array
         featureIndex = rf.estimators_[t].tree_.feature
@@ -305,13 +305,36 @@ def flatforest(rf, testdf):
         testlist['node_type'] = pd.Series(nodetype).values
 
         tree_infotable = pd.concat([tree_infotable, testlist])
-    print("Forest %s flatted, matrix generate with %d row and %d columns" % (rf, tree_infotable.shape[0],
+    print("Forest %s flatted, matrix generate with %d rows and %d columns" % (rf, tree_infotable.shape[0],
                                                                              tree_infotable.shape[1]))
-    return tree_infotable
+    for s_index in range(rf.decision_path(testdf)[0].indptr.shape[0] - 1):  # Loop on samples for prediction
+        sample_ceiling = rf.decision_path(testdf)[0].indptr[s_index + 1]  # The ceiling hit index of the current sample
+        raw_hits = pd.DataFrame()
+        for hit_index in range(sample_ceiling):  # Loop through the hits of the current sample
+            hit = tree_infotable.loc[FF['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
+                        ['feature_index', 'GS', 'tree_index']]
+            hit['sample_index'] = pd.Series(s_index).values
+            raw_hits = pd.concat([raw_hits, hit])
+
+    df = list()
+    df.extend((tree_infotable, raw_hits))
+    print("All node used for predicting samples in %s is extracted" % testdf)
+    return df
 #%%
 
 
-flatforest(random_forest, testy)
+TIE = flatforest(random_forest, testy)
+
 
 #%%
-ft = tree_infotable
+ed = pd.DataFrame()
+temp = FF.loc[FF['nodeInForest'] == 65, ['feature_index', 'GS', 'tree_index']]
+sss = 10
+ed = pd.concat([temp, temp])
+temp['sample_index'] = pd.Series(sss).values
+#%%
+# Put the decision path together with the tree information
+
+
+
+
