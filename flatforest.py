@@ -1,7 +1,19 @@
 #%%
 # Generating the allinone table
+# Flat the random forest classifiers
+# Author: Yue Zhang
+# Contact: Yue.zhang@lih.lu
+# Oct 2018
 
 
+def start(func):
+    def decorator(*arg, **kw):
+        print("Start function %s", % func):
+        return func(*arg, **kw)
+    return decorator
+
+
+@start
 def flatforest(rf, testdf):
     try:
         from time import time
@@ -110,5 +122,5 @@ def flatforest(rf, testdf):
         print("Total run time:")
         print(time() - tt)
         return df
-    except TypeError as augument:
-        print("Process disrupted, non-valid input type ", augument)
+    except TypeError as argument:
+        print("Process disrupted, non-valid input type ", argument)
