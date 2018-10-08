@@ -4,22 +4,28 @@
 # Author: Yue Zhang
 # Contact: Yue.zhang@lih.lu
 # Oct 2018
+import time
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+
+def timing(func):
+    def wrap(*args, **kw):
+        print('<function name: %s>' % func.__name__)
+        time1 = time.time()
+        ret = func(*args, **kw)
+        time2 = time.time()
+        print('[time elapsed: %d s]' % (time2-time1))
+        return ret
+    return wrap
 
 
-def start(func):
-    def decorator(*arg, **kw):
-        print("Start function %s", % func):
-        return func(*arg, **kw)
-    return decorator
-
-
-@start
+@timing
 def flatforest(rf, testdf):
     try:
-        from time import time
-        tt = time()
         tree_infotable = pd.DataFrame()
         raw_hits = pd.DataFrame()
+        predictlist_for_all = pd.DataFrame()
 
         for t in range(rf.n_estimators):
             # Generate the info table for trees
@@ -81,11 +87,6 @@ def flatforest(rf, testdf):
             tree_infotable = pd.concat([tree_infotable, testlist])
         print("Forest %s flatted, matrix generate with %d rows and %d columns" % (rf, tree_infotable.shape[0],
                                                                                  tree_infotable.shape[1]))
-        print("Run time for extracting tree information:")
-        print(time() - tt)
-
-        tt2 = time()
-
         for s_index in range(rf.decision_path(testdf)[0].indptr.shape[0] - 1):  # Loop on samples for prediction
             sample_ceiling = rf.decision_path(testdf)[0].indptr[s_index + 1]  # The ceiling hit index of the current sample
             sample_floor = rf.decision_path(testdf)[0].indptr[s_index]
@@ -93,9 +94,8 @@ def flatforest(rf, testdf):
             predictlist = list()   # Store the predictions among the forest for a certain sample
             treelist = list()
             samplelist = s_index
-            predictlist_for_all = pd.DataFrame()
             for ttt in range(rf.n_estimators):
-                pred_s_t = rf.estimators_[ttt].predict(testy)[s_index]
+                pred_s_t = rf.estimators_[ttt].predict(testdf)[s_index]
                 predictlist.append(pred_s_t)
                 treelist.append(ttt)
             predictlist_for_sample = pd.DataFrame(
@@ -104,7 +104,8 @@ def flatforest(rf, testdf):
                  'sample': samplelist
                  })
             predictlist_for_sample['matching'] = np.where(predictlist_for_sample['prediction'] ==
-                                                       random_forest.predict(testy)[predictlist_for_sample['sample']], 'match', 'not_matching')
+                                                       random_forest.predict(testy)[predictlist_for_sample['sample']],
+                                                          'match', 'not_matching')
             predictlist_for_all = pd.concat([predictlist_for_all, predictlist_for_sample])
 
             for hit_index in range(sample_floor, sample_ceiling):  # Loop through the hits of the current sample
@@ -117,10 +118,6 @@ def flatforest(rf, testdf):
         df = list()
         df.extend((tree_infotable, raw_hits, predictlist_for_all))
         print("All node used for predicting samples extracted")
-        print("Run time for generate the decision table:")
-        print(time() - tt2)
-        print("Total run time:")
-        print(time() - tt)
         return df
     except TypeError as argument:
         print("Process disrupted, non-valid input type ", argument)
