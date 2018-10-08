@@ -376,3 +376,4 @@ max(raw_hits.loc[:, 'tree_index'])  # 200 trees in the test case
 for n in range(max(raw_hits.loc[:, 'tree_index'])):
 
 max(raw_hits.iloc)
+for mm in range(max(raw_hits.loc)):
