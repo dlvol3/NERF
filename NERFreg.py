@@ -23,6 +23,40 @@ def timing(func):
 
 
 @timing
-def nerfreg():
+def localnerf(nf_ff, local_index):
     # TODO Try get this thing out before 3:00 pm, if so, make an appointment with FA on Wednesday,
     # TODO and make the first network of it in the afternoon
+#%%
+local_index = 0
+
+allpairs_local = YOLO[1].loc[(YOLO[1]['sample_index'] == local_index, )]
+allpairs_local['GSP'] = (allpairs_local.loc[:, 'GS_i'] + allpairs_local.loc[:, 'GS_j'])
+test1 = pd.Series(map(frozenset, zip(allpairs_local['feature_i'],allpairs_local['feature_j']))).value_counts().reset_index()
+test1.rename(columns={'index':'places',0:'count'}, inplace=True)
+
+# TODO replace frozenset as soon as possible since it need a O(N2) loop later..
+# Create a frozenset column, with the two features
+allpairs_local['pairs'] = list(map(frozenset, zip(allpairs_local['feature_i'], allpairs_local['feature_j'] )))
+
+ei = list()
+# Loop on unique pairs
+for pp in range(test1.shape[0]):
+    uniquepair = test1.iloc[pp, 0]
+    upcounts = test1.iloc[pp, 1]
+    gspsum = 0
+    counterofhits = 0
+    #  Loop on the ref list
+    # TODO change frozenset to groupby later, this O(N*N) is slow like crazy
+    for ap in range(allpairs_local.shape[0]):
+        if allpairs_local.iloc[ap, 9] == uniquepair:
+            gsp = allpairs_local.iloc[ap, 8]
+            gspsum = gspsum + gsp
+            counterofhits += 1
+    gspba = gspsum/counterofhits
+    eisingle = gspba * upcounts
+    ei.append(eisingle)
+
+test1['EI'] = pd.Series(ei).values
+
+    #%%
+    uniquepair = test1.iloc[1, 0]
