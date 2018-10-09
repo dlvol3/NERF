@@ -54,8 +54,12 @@ def nerftab(df_ff):
                     for i in range(nodes_cand.shape[0]):
                         pairs_inside = pd.DataFrame()
                         for j in range(i + 1, nodes_cand.shape[0]):
-                            f_i = nodes_cand.iloc[i, 0]  # feature index of feature i
-                            f_j = nodes_cand.iloc[j, 0]
+                            if nodes_cand.iloc[i, 0] <= nodes_cand.iloc[j, 0]:
+                                f_i = nodes_cand.iloc[i, 0]  # feature index of feature i, the small one
+                                f_j = nodes_cand.iloc[j, 0]
+                            elif nodes_cand.iloc[i, 0] > nodes_cand.iloc[j, 0]:
+                                f_j = nodes_cand.iloc[i, 0]  # feature index of feature i, assign the small one to i
+                                f_i = nodes_cand.iloc[j, 0]
                             gs_i = nodes_cand.iloc[i, 1]  # gs of feature i
                             gs_j = nodes_cand.iloc[j, 1]
                             ft_i = nodes_cand.iloc[i, 3]  # feature threshold of i
