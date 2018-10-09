@@ -126,7 +126,7 @@ print('\nMost Negative Correlations:\n', correlations.head(15))
 # Random forest 1st
 
 # Define the RF
-random_forest = RandomForestClassifier(n_estimators=50, random_state=123, max_features="sqrt",
+random_forest = RandomForestClassifier(n_estimators=500, random_state=123, max_features="sqrt",
                                        criterion="gini", oob_score=True, n_jobs=10, max_depth=12,
                                        verbose=0)
 #%%
