@@ -20,8 +20,13 @@ import time
 
 #
 
+if platform.system() == 'Windows':
+    # Windows in the lab
+    B20000 = pd.read_table("P:/VM/TCGA/Data/BRCA/BMReady.txt", sep='\t')
+if platform.system() == 'Darwin':
+    # My mac
+    B20000 = pd.read_table("/Users/yue/Pyc/NERF-RF_interpreter/data/BMReady.txt", sep='\t')
 # Read in data and display first 5 rows
-B20000 = pd.read_table("P:/VM/TCGA/Data/BRCA/BMReady.txt", sep='\t')
 
 # Creating the dependent variable class
 factor = pd.factorize(B20000['histological_type'])
