@@ -1,8 +1,7 @@
 #%%
 # Generating the allinone table
 # Take the output of flatforest() to generate the network ready table for the NERF progress
-# Author: Yue Zhang
-# Contact: Yue.zhang@lih.lu
+# Yue Zhang <yue.zhang@lih.lu>
 # Oct 2018
 
 import numpy as np
@@ -85,6 +84,5 @@ def nerftab(df_ff):
         print("Process disrupted, non-valid input type ", argument)
 
 
-YOLO = nerftab(TIE)
 
 

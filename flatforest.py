@@ -1,8 +1,7 @@
 #%%
 # Generating the allinone table
 # Flat the random forest classifiers
-# Author: Yue Zhang
-# Contact: Yue.zhang@lih.lu
+# Yue Zhang <yue.zhang@lih.lu>
 # Oct 2018
 import time
 import numpy as np
@@ -86,9 +85,9 @@ def flatforest(rf, testdf):
 
             tree_infotable = pd.concat([tree_infotable, testlist])
         print("Forest %s flatted, matrix generate with %d rows and %d columns" % (rf, tree_infotable.shape[0],
-                                                                                 tree_infotable.shape[1]))
+                                                                                  tree_infotable.shape[1]))
         for s_index in range(rf.decision_path(testdf)[0].indptr.shape[0] - 1):  # Loop on samples for prediction
-            sample_ceiling = rf.decision_path(testdf)[0].indptr[s_index + 1]  # The ceiling hit index of the current sample
+            sample_ceiling = rf.decision_path(testdf)[0].indptr[s_index + 1]  # The ceiling hit index of the current s
             sample_floor = rf.decision_path(testdf)[0].indptr[s_index]
             hitall = pd.DataFrame()
             predictlist = list()   # Store the predictions among the forest for a certain sample

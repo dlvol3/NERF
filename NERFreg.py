@@ -1,8 +1,7 @@
 #%%
 # calculating the I(Fi, Fj) while generating the edge intensity
 # Take the output of nerftab() to generate the network ready table for the NERF progress
-# Author: Yue Zhang
-# Contact: Yue.zhang@lih.lu
+# Yue Zhang <yue.zhang@lih.lu>
 # Oct 2018
 
 import numpy as np
@@ -41,7 +40,7 @@ def localnerf(nf_ff, local_index):
 # Try to be smart otherwise you are screwed up
 
 
-t1 = localnerf(YOLO, 1)
+
 
 
 
