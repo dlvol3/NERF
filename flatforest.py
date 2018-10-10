@@ -104,7 +104,7 @@ def flatforest(rf, testdf):
                  'sample': samplelist
                  })
             predictlist_for_sample['matching'] = np.where(predictlist_for_sample['prediction'] ==
-                                                       random_forest.predict(testy)[predictlist_for_sample['sample']],
+                                                          rf.predict(testdf)[predictlist_for_sample['sample']],
                                                           'match', 'not_matching')
             predictlist_for_all = pd.concat([predictlist_for_all, predictlist_for_sample])
 

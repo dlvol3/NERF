@@ -40,6 +40,7 @@ def localnerf(nf_ff, local_index):
 # This is like 1000+ times faster...
 # Try to be smart otherwise you are screwed up
 
+
 t1 = localnerf(YOLO, 1)
 
 

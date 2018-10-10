@@ -248,22 +248,8 @@ TIE = flatforest(random_forest, testy)
 
 
 #%%
-testy.shape
-random_forest.decision_path(testy)[0].indices
-#%%
-# All possible pairs generator
-# TODO get rid of the leaves
-# TODO give the tree a index?
-# TODO Same to previous one, give sample a index to loop with
-raw_hits
-max(raw_hits.loc[:, 'sample_index'])  # Number of samples
-for s_in in range(max(raw_hits.loc[:, 'sample_index'])):
-    single_tree = df[1].loc[df[1]['sample_index' == s_in],]#  TODO columns add or not?
-    for t_in in range(max(single_tree))
+t1.to_csv('testoutput.csv', sep = '\t')
 
+featurelist = train.columns.values.tolist()
 
-max(raw_hits.loc[:, 'tree_index'])  # 200 trees in the test case
-for n in range(max(raw_hits.loc[:, 'tree_index'])):
-
-max(raw_hits.iloc)
-for mm in range(max(raw_hits.loc)):
+featurelist[26861]
