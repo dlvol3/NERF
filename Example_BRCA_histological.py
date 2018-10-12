@@ -18,6 +18,10 @@ from sklearn.datasets import make_classification
 import platform
 import time
 import mygene
+# NewtworkX
+import math
+import networkx as nx
+
 
 #
 
@@ -282,40 +286,31 @@ decision_p[0].indices
 testy.shape
 print(decision_p)
 
-#%%
-# random_forest.predict(testy)[1]
-
-TIE = flatforest(random_forest, testy)
-nt_lap = nerftab(TIE)
-t1 = localnerf(nt_lap, 1)
-t0 = localnerf(nt_lap, 0)
-t1.to_csv('testoutput_lap1.txt', sep='\t')
-t0.to_csv('testoutput_lap0.txt', sep='\t')
 
 #%%
-
+# Create feature list, convert ENSG into gene symbols
 featurelist = train.columns.values.tolist()
 # Mygene convertion
 mg = mygene.MyGeneInfo()
 mg.metadata('available_fields')
 con = mg.querymany(featurelist, scopes='ensembl.gene', fields='symbol', species="human", as_dataframe=True)
+# replace Nan unmapped with original ENSG
+con['symbol'] = np.where(con['notfound'] == True, con.index.values, con['symbol'])
+
 featurelist_g = con.iloc[:, 3].reset_index()
 feag = featurelist_g.iloc[:, 1]
 feag.pop(7220)
 feag.pop(38223)
 feag.pop(47083)
+
+# POP out those duplicates
 feag = list(feag)
-con.shape
-featurelist[0]   # 100+ in original FI, top 5 in NERF
-featurelist.index('ENSG00000236107')
-featurelist.index('ENSG00000229425')
-featurelist.index('ENSG00000233024')
 
 index = list(range(len(featurelist)))
 
 sl = random_forest.feature_importances_
 fl = pd.DataFrame({
-    'feature_name': featurelist,
+    'feature_name': feag,
     'score': sl,
     'index': index
 })
@@ -323,7 +318,6 @@ fl = pd.DataFrame({
 
 fls = fl.sort_values('score', ascending=False)
 
-fls.loc[fls['feature_name'] == 'ENSG00000189077', ]
 #%%
 
 
@@ -334,75 +328,68 @@ def sort_by_value(d):
     backitems.sort(reverse=True)
     return [backitems[i][1] for i in range(0, len(backitems))]
 #%%
-# NewtworkX
-import math
-import networkx as nx
 
-t0RT = t0.replace(index, feag)
-
-G = nx.from_pandas_edgelist(t0RT, "feature_i", "feature_j", "EI")
-
-DC = nx.degree_centrality(G)
-RTDC = sort_by_value(DC)
-RTDC1 = RTDC[: int(2*math.sqrt(len(RTDC)))]
-
-t0RT = t0RT.sort_values('EI', ascending=False)
-t01 = t0RT[: int(10*math.sqrt(t0RT.shape[0]))]
-
-
-t02 = t01[t01['feature_i'].isin(RTDC1) & t01['feature_j'].isin(RTDC1)]
-t02.to_csv('testoutput_uni.txt', sep='\t')
-
-G = nx.from_pandas_edgelist(t02, "feature_i", "feature_j", "EI")
-nx.draw(G)
-plt.show()
 
 #%%
 # Other cancer
-# A549 lung 16, BT549 Breast 31
-testy2 = train.iloc[[16, 31]]
-TIE2 = flatforest(random_forest, testy)
-nt_lap2 = nerftab(TIE)
-tlung = localnerf(nt_lap2, 0)
-tbreast = localnerf(nt_lap2, 1)
-tlung = tlung.replace(index, feag)
+# Uninarytract bladder 2, A549 lung 16, BT549 Breast 31
+testy2 = train.iloc[[2, 16, 31]]
+TIE2 = flatforest(random_forest, testy2)
+nt_lap2 = nerftab(TIE2)
+tbla = localnerf(nt_lap2, 0)
+tlung = localnerf(nt_lap2, 1)
+tbreast = localnerf(nt_lap2, 2)
 
-tbreast = tbreast.replace(index, feag)
-tlung.to_csv('testoutput_A549.txt', sep='\t')
-tbreast.to_csv('testoutput_BT549.txt', sep='\t')
-
-featurelist[31107]
-
-tlung = tlung.replace(index, feag)
-
-tbreast = tbreast.replace(index, feag)
-# replace with gene name and selection of 'powerful nodes' lung
-Glung = nx.from_pandas_edgelist(tlung, "feature_i", "feature_j", "EI")
-
-DClung = nx.degree_centrality(Glung)
-RTDClung = sort_by_value(DClung)
-RTDC1lung = RTDClung[: int(2*math.sqrt(len(RTDClung)))]
-
-tlungsort = tlung.sort_values('EI', ascending=False)
-tlungS = tlungsort[: int(10*math.sqrt(t0RT.shape[0]))]
+#%%
+#Define a func for later
 
 
-tlungfinal = tlungS[tlungS['feature_i'].isin(RTDC1lung) & tlungS['feature_j'].isin(RTDC1lung)]
-tlungfinal.to_csv('testoutput_RTDC1lung.txt', sep='\t')
+def twonets(outdf, filename, index1=2, index2=10):
+    """
+    Purpose
+    ---------
+    Process the result of the localnerf(), return two networks, one with everything, one with less info
+    ---------
+    :param outdf: The localnerf() result
+    :param filename: the desire filename, or path with name, no suffix
+    :param index1: Index for selecting top degree of centrality, default = 2
+    :param index2: Index for selecting top edge intensity, default = 10
+    :return: A list contains five elements, whole network with gene names, degree of all features,
+     degreetop selected, eitop delected, sub network with gene names
+    """
+    outdf = outdf.replace(index, feag)
+    # export the 'everything' network
+    outdf.to_csv(filename + "_everything.txt", sep='\t')
 
-# replace with gene name and selection of 'powerful nodes' breast
-Gbreast = nx.from_pandas_edgelist(tbreast, "feature_i", "feature_j", "EI")
+    gout = nx.from_pandas_edgelist(outdf, "feature_i", "feature_j", "EI")
 
-DCbreast = nx.degree_centrality(Gbreast)
-RTDCbreast = sort_by_value(DCbreast)
-RTDC1breast = RTDCbreast[: int(2*math.sqrt(len(RTDCbreast)))]
+    degreecout = nx.degree_centrality(gout)
+    # Test save the centrality
+    np.save(filename + "_DC.txt", degreecout)
+    # Large to small sorting
+    sortdegree = sort_by_value(degreecout)
+    # take the top sub of the DC
+    degreetop = sortdegree[: int(index1 * math.sqrt(len(sortdegree)))]
+    # Large to small sorting, Edge intensity
+    outdfsort = outdf.sort_values('EI', ascending=False)
 
-tbreastsort = tbreast.sort_values('EI', ascending=False)
-tbreastS = tbreastsort[: int(10*math.sqrt(t0RT.shape[0]))]
+    eitop = outdfsort[: int(index2 * math.sqrt(outdfsort.shape[0]))]
+
+    outdffinal = eitop[eitop['feature_i'].isin(degreetop) & eitop['feature_j'].isin(degreetop)]
+    outdffinal.to_csv(filename + '_sub.txt', sep='\t')
+    outputfunc = list()
+    outputfunc.extend((outdf, degreecout, degreetop, eitop, outdffinal))
+    return outputfunc
+
+#%%
 
 
-tbreastfinal = tbreastS[tbreastS['feature_i'].isin(RTDC1breast) & tbreastS['feature_j'].isin(RTDC1breast)]
-tbreastfinal.to_csv('testoutput_RTDC1breast.txt', sep='\t')
+BT549 = twonets(tbreast, "BT549_breast")
+UT = twonets(tbla, "UT_bladder")
+A549 = twonets(tlung, "A549_lung")
+
 
 #%%
 # Similarity between the two predictions
+
+
