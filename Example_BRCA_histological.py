@@ -321,12 +321,6 @@ fls = fl.sort_values('score', ascending=False)
 #%%
 
 
-# Sort by value, Dict
-def sort_by_value(d):
-    items = d.items()
-    backitems = [[v[1], v[0]] for v in items]
-    backitems.sort(reverse=True)
-    return [backitems[i][1] for i in range(0, len(backitems))]
 #%%
 
 
@@ -341,52 +335,12 @@ tlung = localnerf(nt_lap2, 1)
 tbreast = localnerf(nt_lap2, 2)
 
 #%%
-#Define a func for later
-
-
-def twonets(outdf, filename, index1=2, index2=10):
-    """
-    Purpose
-    ---------
-    Process the result of the localnerf(), return two networks, one with everything, one with less info
-    ---------
-    :param outdf: The localnerf() result
-    :param filename: the desire filename, or path with name, no suffix
-    :param index1: Index for selecting top degree of centrality, default = 2
-    :param index2: Index for selecting top edge intensity, default = 10
-    :return: A list contains five elements, whole network with gene names, degree of all features,
-     degreetop selected, eitop delected, sub network with gene names
-    """
-    outdf = outdf.replace(index, feag)
-    # export the 'everything' network
-    outdf.to_csv(filename + "_everything.txt", sep='\t')
-
-    gout = nx.from_pandas_edgelist(outdf, "feature_i", "feature_j", "EI")
-
-    degreecout = nx.degree_centrality(gout)
-    # Test save the centrality
-    np.save(filename + "_DC.txt", degreecout)
-    # Large to small sorting
-    sortdegree = sort_by_value(degreecout)
-    # take the top sub of the DC
-    degreetop = sortdegree[: int(index1 * math.sqrt(len(sortdegree)))]
-    # Large to small sorting, Edge intensity
-    outdfsort = outdf.sort_values('EI', ascending=False)
-
-    eitop = outdfsort[: int(index2 * math.sqrt(outdfsort.shape[0]))]
-
-    outdffinal = eitop[eitop['feature_i'].isin(degreetop) & eitop['feature_j'].isin(degreetop)]
-    outdffinal.to_csv(filename + '_sub.txt', sep='\t')
-    outputfunc = list()
-    outputfunc.extend((outdf, degreecout, degreetop, eitop, outdffinal))
-    return outputfunc
-
 #%%
 
 
-BT549 = twonets(tbreast, "BT549_breast")
-UT = twonets(tbla, "UT_bladder")
-A549 = twonets(tlung, "A549_lung")
+BT549 = twonets(tbreast, "BT549_breast", index, feag)
+UT = twonets(tbla, "UT_bladder", index, feag)
+A549 = twonets(tlung, "A549_lung", index, feag)
 
 
 #%%

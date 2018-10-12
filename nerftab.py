@@ -4,9 +4,8 @@
 # Yue Zhang <yue.zhang@lih.lu>
 # Oct 2018
 
-import numpy as np
+
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
 import time
 
 
