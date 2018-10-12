@@ -5,9 +5,11 @@
 # Oct 2018
 
 import numpy as np
+import pandas as pd
 import time
 import math
 import networkx as nx
+import os
 
 def timing(func):
     def wrap(*args, **kw):
@@ -46,7 +48,8 @@ def sort_by_value(d):
 
 
 # Define a func for later
-def twonets(outdf, filename, index_of_features=False, featureref=False, index1=2, index2=10):
+@timing
+def twonets(outdf, filename, index_of_features, featureref, index1=2, index2=10):
     """
     Purpose
     ---------
@@ -61,18 +64,22 @@ def twonets(outdf, filename, index_of_features=False, featureref=False, index1=2
     :return: A list contains five elements, whole network with gene names, degree of all features,
      degreetop selected, eitop delected, sub network with gene names
     """
-    if index_of_features is False & featureref is False:
-        pass
-    else:
+    if not os.path.exists("output"):
+        os.makedirs("output")
+    if index_of_features or featureref:
         outdf = outdf.replace(index_of_features, featureref)
+
+    else:
+        pass
     # export the 'everything' network
-    outdf.to_csv(filename + "_everything.txt", sep='\t')
+    outdf.to_csv(os.getcwd() + '/output/' + filename + "_everything.txt", sep='\t')
 
     gout = nx.from_pandas_edgelist(outdf, "feature_i", "feature_j", "EI")
 
     degreecout = nx.degree_centrality(gout)
     # Test save the centrality
-    np.save(filename + "_DC.txt", degreecout)
+    degreecoutdf = pd.DataFrame.from_dict(degreecout, orient="index")
+    degreecoutdf.to_csv(os.getcwd() + '/output/' + filename + "_DC.txt", sep='\t')
     # Large to small sorting
     sortdegree = sort_by_value(degreecout)
     # take the top sub of the DC
@@ -83,9 +90,10 @@ def twonets(outdf, filename, index_of_features=False, featureref=False, index1=2
     eitop = outdfsort[: int(index2 * math.sqrt(outdfsort.shape[0]))]
 
     outdffinal = eitop[eitop['feature_i'].isin(degreetop) & eitop['feature_j'].isin(degreetop)]
-    outdffinal.to_csv(filename + '_sub.txt', sep='\t')
+    outdffinal.to_csv(os.getcwd() + '/output/' + filename + '_sub.txt', sep='\t')
     outputfunc = list()
     outputfunc.extend((outdf, degreecout, degreetop, eitop, outdffinal))
+    print("Processing finished.")
     return outputfunc
 
 

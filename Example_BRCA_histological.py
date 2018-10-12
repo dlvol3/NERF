@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.externals import joblib
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV, KFold, cross_val_score
 from sklearn import cross_validation
 from sklearn.preprocessing import LabelEncoder
 from sklearn.datasets import make_classification
@@ -342,8 +342,159 @@ BT549 = twonets(tbreast, "BT549_breast", index, feag)
 UT = twonets(tbla, "UT_bladder", index, feag)
 A549 = twonets(tlung, "A549_lung", index, feag)
 
-
 #%%
 # Similarity between the two predictions
+#%%
+# Grid search
+# Grid search for the best Hyperpara.
+
+np.random.seed(123)
+start = time.time()
+
+param_dist = {'max_depth': [2,5,8,10,12],
+              'bootstrap': [True, False],
+              'max_features': ['auto', 'sqrt', 'log2', None]
+              }
+
+cv_rf = GridSearchCV(random_forest, cv=10,
+                     param_grid=param_dist,
+                     n_jobs = 10)
+
+cv_rf.fit(train, train_labels)
+print('Best Parameters using grid search: \n',
+      cv_rf.best_params_)
+end = time.time()
+print('Time taken in grid search: {0: .2f}'.format(end - start))
+#%%
+# Cross-validation on the mother model
+def cross_val_metrics(fit, training_set, class_set, estimator, print_results = True):
+    """
+    Purpose
+    ----------
+    Function helps automate cross validation processes while including
+    option to print metrics or store in variable
+    Parameters
+    ----------
+    fit: Fitted model
+    training_set:  Data_frame containing 80% of original dataframe
+    class_set:     data_frame containing the respective target vaues
+                      for the training_set
+    print_results: Boolean, if true prints the metrics, else saves metrics as
+                      variables
+    Returns
+    ----------
+    scores.mean(): Float representing cross validation score
+    scores.std() / 2: Float representing the standard error (derived
+                from cross validation score's standard deviation)
+    """
+    my_estimators = {
+        'rf': 'estimators_',
+    }
+    try:
+        # Captures whether first parameter is a model
+        if not hasattr(fit, 'fit'):
+            return print("'{0}' is not an instantiated model from scikit-learn".format(fit))
+
+        # Captures whether the model has been trained
+        if not vars(fit)[my_estimators[estimator]]:
+            return print("Model does not appear to be trained.")
+
+    except KeyError as e:
+        print("'{0}' does not correspond with the appropriate key inside the estimators dictionary. \
+\nPlease refer to function to check `my_estimators` dictionary.".format(estimator))
+        raise
+
+    n = KFold(n_splits=10)
+    scores = cross_val_score(fit,
+                             training_set,
+                             class_set,
+                             cv = n
+                             )
+    if print_results:
+        for i in range(0, len(scores)):
+            print("Cross validation run {0}: {1: 0.3f}".format(i, scores[i]))
+        print("Accuracy: {0: 0.3f} (+/- {1: 0.3f})"\
+              .format(scores.mean(), scores.std() / 2))
+    else:
+        return scores.mean(), scores.std() / 2
+
+#%%
+cross_val_metrics(random_forest,
+                  train,
+                  train_labels,
+                  'rf',
+                  print_results=True,
+                  )
+#%%
+print(__doc__)
+
+import numpy as np
+from scipy import interp
+import matplotlib.pyplot as plt
+from itertools import cycle
+
+from sklearn import svm, datasets
+from sklearn.metrics import roc_curve, auc
+from sklearn.model_selection import StratifiedKFold
+
+# #############################################################################
+# Data IO and generation
+
+# Import some data to play with
+X = train
+y = train_labels
+X = X.values
+y = y.values
+
+n_samples, n_features = X.shape
 
 
+# #############################################################################
+# Classification and ROC analysis
+
+# Run classifier with cross-validation and plot ROC curves
+cv = StratifiedKFold(n_splits=6)
+classifier = random_forest
+
+tprs = []
+aucs = []
+mean_fpr = np.linspace(0, 1, 100)
+
+i = 0
+for train, test in cv.split(X, y):
+    probas_ = classifier.fit(X[train], y[train]).predict_proba(X[test])
+    # Compute ROC curve and area the curve
+    fpr, tpr, thresholds = roc_curve(y[test], probas_[:, 1])
+    tprs.append(interp(mean_fpr, fpr, tpr))
+    tprs[-1][0] = 0.0
+    roc_auc = auc(fpr, tpr)
+    aucs.append(roc_auc)
+    plt.plot(fpr, tpr, lw=1, alpha=0.3,
+             label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
+
+    i += 1
+plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
+         label='Chance', alpha=.8)
+
+mean_tpr = np.mean(tprs, axis=0)
+mean_tpr[-1] = 1.0
+mean_auc = auc(mean_fpr, mean_tpr)
+std_auc = np.std(aucs)
+plt.plot(mean_fpr, mean_tpr, color='b',
+         label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc),
+         lw=2, alpha=.8)
+
+std_tpr = np.std(tprs, axis=0)
+tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+plt.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
+                 label=r'$\pm$ 1 std. dev.')
+
+plt.xlim([-0.05, 1.05])
+plt.ylim([-0.05, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver operating characteristic CV')
+plt.legend(loc="lower right")
+plt.savefig('Per.png')
+plt.show()
