@@ -22,9 +22,6 @@ import mygene
 import math
 import networkx as nx
 
-
-#
-
 if platform.system() == 'Windows':
     # Windows in the lab
     B20000 = pd.read_table("P:/VM/TCGA/Data/BRCA/BMReady.txt", sep='\t')
@@ -43,19 +40,44 @@ y = B20000.iloc[:, 0].values  # Labels of training
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.01, random_state=123)
 
-rf1 = RandomForestClassifier(n_estimators=30, criterion='gini', max_features="sqrt",
-                             oob_score=True, n_jobs=13, max_depth=14,
+rf1 = RandomForestClassifier(n_estimators=300, criterion='gini', max_features="sqrt",
+                             oob_score=True, n_jobs=13, max_depth=12,
                              verbose=0)
+
+
+
 
 rf1.fit(x_train, y_train)
 
+featurelistBR = B20000.iloc[:, 1:20530].columns.values.tolist()
+indexBR = list(range(len(featurelistBR)))
+rf1.predict(x_test)
+ff_his = flatforest(rf1, x_test)
+nt_his = nerftab(ff_his)
+#%% # case 5
+t5 = localnerf(nt_his, 5)
+BMresult = twonets(t5, "BM300trees1", indexBR, featurelistBR)
+#%% # case 5
+t4 = localnerf(nt_his, 4)
+BMresult = twonets(t4, "BM300trees0", indexBR, featurelistBR)
+#%% # case 5
+t6 = localnerf(nt_his, 6)
+BMresult = twonets(t6, "BM300trees1-2", indexBR, featurelistBR)
+
+#%%
+# Feature importance list
+
+feature_importance_values = rf1.feature_importances_
+feature_importances = pd.DataFrame({'feature': featurelistBR, 'importance': feature_importance_values})
+feature_importances.to_csv(os.getcwd() + '/output/featureimp300.txt', sep='\t')
+
+#%%
 ff_his = flatforest(rf1, x_test)
 nt_his = nerftab(ff_his)
 t1 = localnerf(nt_his, 1)
 t2 = localnerf(nt_his, 2)
 t1.to_csv('testoutput_his1.txt', sep='\t')
 t2.to_csv('testoutput_his0.txt', sep='\t')
-
 
 # Lap example
 #%%
@@ -351,9 +373,9 @@ A549 = twonets(tlung, "A549_lung", index, feag)
 np.random.seed(123)
 start = time.time()
 
-param_dist = {'max_depth': [2,5,8,10,12],
+param_dist = {'max_depth': [2,6,12],
               'bootstrap': [True, False],
-              'max_features': ['auto', 'sqrt', 'log2', None]
+              'max_features': ['sqrt', 'log2', None]
               }
 
 cv_rf = GridSearchCV(random_forest, cv=10,
@@ -447,14 +469,17 @@ X = X.values
 y = y.values
 
 n_samples, n_features = X.shape
-
+X = x_test
+y = y_test
+X = X.values
+y = y.values
 
 # #############################################################################
 # Classification and ROC analysis
-
+#%%
 # Run classifier with cross-validation and plot ROC curves
 cv = StratifiedKFold(n_splits=6)
-classifier = random_forest
+classifier = rf1
 
 tprs = []
 aucs = []

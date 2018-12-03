@@ -49,7 +49,7 @@ def sort_by_value(d):
 
 # Define a func for later
 @timing
-def twonets(outdf, filename, index_of_features, featureref, index1=2, index2=10):
+def twonets(outdf, filename, index_of_features, featureref, index1=4, index2=11):
     """
     Purpose
     ---------
