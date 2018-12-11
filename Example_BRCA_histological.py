@@ -24,7 +24,7 @@ import networkx as nx
 
 if platform.system() == 'Windows':
     # Windows in the lab
-    B20000 = pd.read_table("P:/VM/TCGA/Data/BRCA/BMReady.txt", sep='\t')
+    B20000 = pd.read_table("P:/VM/TCGA/Data/BRCA/nosmote.csv", sep=',')
 if platform.system() == 'Darwin':
     # My mac
     B20000 = pd.read_table("/Users/yue/Pyc/NERF-RF_interpreter/data/BMReady.txt", sep='\t')
@@ -40,7 +40,7 @@ y = B20000.iloc[:, 0].values  # Labels of training
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.01, random_state=123)
 
-rf1 = RandomForestClassifier(n_estimators=300, criterion='gini', max_features="sqrt",
+rf1 = RandomForestClassifier(n_estimators=1000, criterion='gini', max_features="sqrt",
                              oob_score=True, n_jobs=13, max_depth=12,
                              verbose=0)
 
@@ -56,20 +56,20 @@ ff_his = flatforest(rf1, x_test)
 nt_his = nerftab(ff_his)
 #%% # case 5
 t5 = localnerf(nt_his, 5)
-BMresult = twonets(t5, "BM300trees1", indexBR, featurelistBR)
+BMresult = twonets(t5, "BM1000trees1", indexBR, featurelistBR)
 #%% # case 5
 t4 = localnerf(nt_his, 4)
-BMresult = twonets(t4, "BM300trees0", indexBR, featurelistBR)
+BMresult = twonets(t4, "BM1000trees0", indexBR, featurelistBR)
 #%% # case 5
 t6 = localnerf(nt_his, 6)
-BMresult = twonets(t6, "BM300trees1-2", indexBR, featurelistBR)
+BMresult = twonets(t6, "BM1000trees1-2", indexBR, featurelistBR)
 
 #%%
 # Feature importance list
 
 feature_importance_values = rf1.feature_importances_
 feature_importances = pd.DataFrame({'feature': featurelistBR, 'importance': feature_importance_values})
-feature_importances.to_csv(os.getcwd() + '/output/featureimp300.txt', sep='\t')
+feature_importances.to_csv(os.getcwd() + '/output/featureimp1000.txt', sep='\t')
 
 #%%
 ff_his = flatforest(rf1, x_test)
@@ -477,6 +477,15 @@ y = y.values
 # #############################################################################
 # Classification and ROC analysis
 #%%
+
+import numpy as np
+from scipy import interp
+import matplotlib.pyplot as plt
+from itertools import cycle
+
+from sklearn import svm, datasets
+from sklearn.metrics import roc_curve, auc
+from sklearn.model_selection import StratifiedKFold
 # Run classifier with cross-validation and plot ROC curves
 cv = StratifiedKFold(n_splits=6)
 classifier = rf1
