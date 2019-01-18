@@ -208,7 +208,7 @@ print('\nMost Negative Correlations:\n', correlations.head(15))
 # Random forest 1st
 
 # Define the RF
-random_forest = RandomForestClassifier(n_estimators=300, random_state=123, max_features="sqrt",
+random_forest = RandomForestClassifier(n_estimators=400, random_state=123, max_features="sqrt",
                                        criterion="gini", oob_score=True, n_jobs=10, max_depth=12,
                                        verbose=0)
 #%%
@@ -316,14 +316,15 @@ featurelist = train.columns.values.tolist()
 mg = mygene.MyGeneInfo()
 mg.metadata('available_fields')
 con = mg.querymany(featurelist, scopes='ensembl.gene', fields='symbol', species="human", as_dataframe=True)
-# replace Nan unmapped with original ENSG
+# replace Nan unmapped with original ENSGZ
 con['symbol'] = np.where(con['notfound'] == True, con.index.values, con['symbol'])
 
 featurelist_g = con.iloc[:, 3].reset_index()
 feag = featurelist_g.iloc[:, 1]
-feag.pop(7220)
-feag.pop(38223)
-feag.pop(47083)
+# featurelist_g.loc[featurelist_g['query'] == 'ENSG00000229425'].index[0]
+
+
+feag.pop(47081)
 
 # POP out those duplicates
 feag = list(feag)
@@ -366,6 +367,14 @@ A549 = twonets(tlung, "A549_lung", index, feag)
 
 #%%
 # Similarity between the two predictions
+
+#%%
+# Feature importance list
+
+feature_importance_values = random_forest.feature_importances_
+feature_importances = pd.DataFrame({'feature': featurelist, 'importance': feature_importance_values})
+feature_importances.to_csv(os.getcwd() + '/output/featureimpLap.txt', sep='\t')
+
 #%%
 # Grid search
 # Grid search for the best Hyperpara.
