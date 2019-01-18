@@ -34,10 +34,10 @@ with open('your_file.txt', 'w') as f:
 
 
 
-tbla
-tbla = tbla.replace(index, featurelist)
+tau565
+tau565 = tau565.replace(index, featurelist)
 
-Gbla = nx.from_pandas_edgelist(tbla, "feature_i", "feature_j", "EI")
+Gbla = nx.from_pandas_edgelist(tau565, "feature_i", "feature_j", "EI")
 
 nx.is_directed(DG)
 
@@ -50,7 +50,7 @@ rkdata.index.name = 'PR'
 rkdata
 rkrank = sorted(rktest, key= rktest.get, reverse=True)
 
-rkrank = [featurelist[i] for i in rkrank]
-with open('your_file_bla.txt', 'w') as f:
+#rkrank = [featurelist[i] for i in rkrank]
+with open('your_file_565.txt', 'w') as f:
     for item in rkrank:
         f.write("%s\n" % item)
