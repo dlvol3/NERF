@@ -350,13 +350,22 @@ fls = fl.sort_values('score', ascending=False)
 #%%
 # Other cancer
 # Uninarytract bladder 2, A549 lung 16, BT549 Breast 31
-testy2 = train.iloc[[2, 16, 31]]
+testy2 = train.iloc[[23, 30]]
 TIE2 = flatforest(random_forest, testy2)
 nt_lap2 = nerftab(TIE2)
-tbla = localnerf(nt_lap2, 0)
-tlung = localnerf(nt_lap2, 1)
-tbreast = localnerf(nt_lap2, 2)
 
+#%% 3 cell lines
+# tbla = localnerf(nt_lap2, 0)
+# tlung = localnerf(nt_lap2, 1)
+# tbreast = localnerf(nt_lap2, 2)
+
+
+#%% SEN and RES
+tau565 = localnerf(nt_lap2, 0)
+t474 = localnerf(nt_lap2, 1)
+
+AU565 = twonets(tau565, "AU565S", index, feag)
+BT474 = twonets(t474, "BT549S", index, feag)
 #%%
 #%%
 

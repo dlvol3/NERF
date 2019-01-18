@@ -19,6 +19,9 @@ def timing(func):
         return ret
     return wrap
 
+# TODO Break the flatforest() into two parts, make a var to store the flatted forests, save tons of hours
+
+
 
 @timing
 def flatforest(rf, testdf):
