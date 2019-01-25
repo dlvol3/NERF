@@ -34,7 +34,7 @@ with open('your_file.txt', 'w') as f:
 
 
 
-tau565
+tlung
 tau565 = tau565.replace(index, featurelist)
 
 Gbla = nx.from_pandas_edgelist(tau565, "feature_i", "feature_j", "EI")
@@ -54,3 +54,28 @@ rkrank = sorted(rktest, key= rktest.get, reverse=True)
 with open('your_file_565.txt', 'w') as f:
     for item in rkrank:
         f.write("%s\n" % item)
+
+
+# tlung
+
+tlung1 = tlung.replace(index, featurelist)
+
+Glung = nx.from_pandas_edgelist(tlung1, "feature_i", "feature_j", "EI")
+
+DG = Glung.to_directed()
+
+rktest = nx.pagerank(DG, weight='EI')
+
+rkdata = pd.Series(rktest, name='position')
+rkdata.index.name = 'PR'
+rkdata
+rkrank = sorted(rktest, key= rktest.get, reverse=True)
+
+#rkrank = [featurelist[i] for i in rkrank]
+with open('your_file_lung.txt', 'w') as f:
+    for item in rkrank:
+        f.write("%s\n" % item)
+
+#
+# if rf.type == "classification":
+#     embed a regression function in the following

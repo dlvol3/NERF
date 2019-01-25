@@ -356,7 +356,7 @@ nt_lap2 = nerftab(TIE2)
 
 #%% 3 cell lines
 # tbla = localnerf(nt_lap2, 0)
-# tlung = localnerf(nt_lap2, 1)
+tlung = localnerf(nt_lap2, 1)
 # tbreast = localnerf(nt_lap2, 2)
 
 
@@ -373,7 +373,17 @@ BT474 = twonets(t474, "BT549S", index, feag)
 BT549 = twonets(tbreast, "BT549_breast", index, feag)
 UT = twonets(tbla, "UT_bladder", index, feag)
 A549 = twonets(tlung, "A549_lung", index, feag)
+#%% # Javascript version of the network X
+jsnx.draw(Glung, {
+    element: '#canvas',
+    weighted: true,
+    edgeStyle: {
+        'stroke-width': 10
+    }
+});
 
+
+nx.write_gexf(Glung, os.getcwd() + '/output/1_lung.gexf', encoding='utf-8', prettyprint=True)
 #%%
 # Similarity between the two predictions
 
