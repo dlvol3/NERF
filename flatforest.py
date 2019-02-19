@@ -91,7 +91,7 @@ def flatforest(rf, testdf):
         print("Process disrupted, non-valid input type ", argument)
 
 @timing
-def extarget(rf, testdf, flatedf):
+def extarget(rf, testdf, flattedf):
     try:
         raw_hits = pd.DataFrame()
         predictlist_for_all = pd.DataFrame()
@@ -117,14 +117,14 @@ def extarget(rf, testdf, flatedf):
             predictlist_for_all = pd.concat([predictlist_for_all, predictlist_for_sample])
 
             for hit_index in range(sample_floor, sample_ceiling):  # Loop through the hits of the current sample
-                hit = flatedf.loc[flatedf['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
+                hit = flattedf.loc[flattedf['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
                             ['feature_index', 'GS', 'tree_index','feature_threshold']]
                 hit['sample_index'] = pd.Series(s_index).values
                 hitall = pd.concat([hitall, hit])
             raw_hits = pd.concat([raw_hits, hitall])
 
         df = list()
-        df.extend((flatedf, raw_hits, predictlist_for_all))
+        df.extend((flattedf, raw_hits, predictlist_for_all))
         print("All node used for predicting samples extracted")
         return df
     except TypeError as argument:
