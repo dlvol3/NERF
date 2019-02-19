@@ -19,16 +19,12 @@ def timing(func):
         return ret
     return wrap
 
-# TODO Break the flatforest() into two parts, make a var to store the flatted forests, save tons of hours
-
-
-
 @timing
 def flatforest(rf, testdf):
     try:
         tree_infotable = pd.DataFrame()
-        raw_hits = pd.DataFrame()
-        predictlist_for_all = pd.DataFrame()
+        # raw_hits = pd.DataFrame()
+        # predictlist_for_all = pd.DataFrame()
 
         for t in range(rf.n_estimators):
             # Generate the info table for trees
@@ -90,6 +86,15 @@ def flatforest(rf, testdf):
             tree_infotable = pd.concat([tree_infotable, testlist])
         print("Forest %s flatted, matrix generate with %d rows and %d columns" % (rf, tree_infotable.shape[0],
                                                                                   tree_infotable.shape[1]))
+        return tree_infotable
+    except TypeError as argument:
+        print("Process disrupted, non-valid input type ", argument)
+
+@timing
+def extarget(rf, testdf, flatedf):
+    try:
+        raw_hits = pd.DataFrame()
+        predictlist_for_all = pd.DataFrame()
         for s_index in range(rf.decision_path(testdf)[0].indptr.shape[0] - 1):  # Loop on samples for prediction
             sample_ceiling = rf.decision_path(testdf)[0].indptr[s_index + 1]  # The ceiling hit index of the current s
             sample_floor = rf.decision_path(testdf)[0].indptr[s_index]
@@ -112,14 +117,14 @@ def flatforest(rf, testdf):
             predictlist_for_all = pd.concat([predictlist_for_all, predictlist_for_sample])
 
             for hit_index in range(sample_floor, sample_ceiling):  # Loop through the hits of the current sample
-                hit = tree_infotable.loc[tree_infotable['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
+                hit = flatedf.loc[flatedf['nodeInForest'] == rf.decision_path(testdf)[0].indices[hit_index],
                             ['feature_index', 'GS', 'tree_index','feature_threshold']]
                 hit['sample_index'] = pd.Series(s_index).values
                 hitall = pd.concat([hitall, hit])
             raw_hits = pd.concat([raw_hits, hitall])
 
         df = list()
-        df.extend((tree_infotable, raw_hits, predictlist_for_all))
+        df.extend((flatedf, raw_hits, predictlist_for_all))
         print("All node used for predicting samples extracted")
         return df
     except TypeError as argument:
