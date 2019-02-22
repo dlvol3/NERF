@@ -8,7 +8,6 @@ import networkx as nx
 
 
 #%%
-
 # Get the Garph from the previous twonet()
 
 tbreast

@@ -208,7 +208,7 @@ print('\nMost Negative Correlations:\n', correlations.head(15))
 # Random forest 1st
 
 # Define the RF
-random_forest = RandomForestClassifier(n_estimators=400, random_state=123, max_features="sqrt",
+random_forest = RandomForestClassifier(n_estimators=100, random_state=123, max_features="sqrt",
                                        criterion="gini", oob_score=True, n_jobs=10, max_depth=12,
                                        verbose=0)
 #%%
@@ -351,12 +351,13 @@ fls = fl.sort_values('score', ascending=False)
 # Other cancer
 # Uninarytract bladder 2, A549 lung 16, BT549 Breast 31
 testy2 = train.iloc[[23, 30]]
-TIE2 = flatforest(random_forest, testy2)
+TIE2_f = flatforest(random_forest, testy2)
+TIE2 = extarget(random_forest, testy2, TIE2_f)
 nt_lap2 = nerftab(TIE2)
 
 #%% 3 cell lines
 # tbla = localnerf(nt_lap2, 0)
-tlung = localnerf(nt_lap2, 1)
+# tlung = localnerf(nt_lap2, 1)
 # tbreast = localnerf(nt_lap2, 2)
 
 
@@ -367,6 +368,7 @@ t474 = localnerf(nt_lap2, 1)
 AU565 = twonets(tau565, "AU565S", index, feag)
 BT474 = twonets(t474, "BT549S", index, feag)
 #%%
+exp = random_forest.decision_path(testy2)
 #%%
 
 
