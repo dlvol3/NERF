@@ -11,6 +11,7 @@ import time
 
 def timing(func):
     def wrap(*args, **kw):
+
         print('<function name: %s>' % func.__name__)
         time1 = time.time()
         ret = func(*args, **kw)
@@ -21,6 +22,12 @@ def timing(func):
 
 @timing
 def flatforest(rf, testdf):
+    """
+    Extract the forest information, O(n) ~ number of trees
+    :param rf:
+    :param testdf:
+    :return:
+    """
     try:
         tree_infotable = pd.DataFrame()
         # raw_hits = pd.DataFrame()

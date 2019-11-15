@@ -78,3 +78,49 @@ with open('your_file_lung.txt', 'w') as f:
 #
 # if rf.type == "classification":
 #     embed a regression function in the following
+
+# tS3
+
+ts3 = s3.replace(index, featurelist)
+
+Gs3 = nx.from_pandas_edgelist(ts3, "feature_i", "feature_j", "EI")
+
+DG = Gs3.to_directed()
+
+rktest = nx.pagerank(DG, weight='EI')
+
+rkdata = pd.Series(rktest, name='position')
+rkdata.index.name = 'PR'
+rkdata
+rkrank = sorted(rktest, key= rktest.get, reverse=True)
+
+#rkrank = [featurelist[i] for i in rkrank]
+with open('your_file_s3pd.txt', 'w') as f:
+    for item in rkrank:
+        f.write("%s\n" % item)
+
+
+# tH322
+
+tH322 = H322.replace(index, featurelist)
+
+GH322 = nx.from_pandas_edgelist(tH322, "feature_i", "feature_j", "EI")
+
+DG = GH322.to_directed()
+
+rktest = nx.pagerank(DG, weight='EI')
+
+rkdata = pd.Series(rktest, name='position')
+rkdata.index.name = 'PR'
+rkdata
+rkrank = sorted(rktest, key= rktest.get, reverse=True)
+
+#rkrank = [featurelist[i] for i in rkrank]
+with open('your_file_H322pd.txt', 'w') as f:
+    for item in rkrank:
+        f.write("%s\n" % item)
+
+
+#%%
+
+page rank them all!

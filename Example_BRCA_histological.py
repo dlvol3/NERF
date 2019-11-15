@@ -34,7 +34,6 @@ if platform.system() == 'Darwin':
 factor = pd.factorize(B20000['histological_type'])
 B20000.histological_type = factor[0]
 definitions = factor[1]
-
 x = B20000.iloc[:, 1:20530].values   # Features for training
 y = B20000.iloc[:, 0].values  # Labels of training
 
@@ -117,6 +116,12 @@ lapaC = lapaccle.iloc[:, ciLapa]
 lapaG = lapagdsc.iloc[:, ciLapa]
 lapaC.head(1)
 #%%
+# Branch: check the correlated features of ERBB2
+
+
+
+
+#%%
 # -------------------------###
 # Get familiar with python DS
 # ref: https://www.kaggle.com/willkoehrsen/start-here-a-gentle-introduction
@@ -193,6 +198,15 @@ lapaC.dtypes.value_counts()
 
 # Check the number of the unique classes in each object column
 lapaC.select_dtypes('object').apply(pd.Series.nunique, axis=0)
+#%% branch: check the correlation status of ERBB2
+
+
+erbb2c = lapaC.iloc[:, 2:(lapaC.shape[1]-1)].corr()
+print('Most Positive Correlations:\n', erbb2c["ENSG00000141736"].tail(15))
+print('\nMost Negative Correlations:\n', erbb2c["ENSG00000141736"].head(15))
+
+
+
 
 #%%
 # Correlations
@@ -394,7 +408,7 @@ nx.write_gexf(Glung, os.getcwd() + '/output/1_lung.gexf', encoding='utf-8', pret
 
 feature_importance_values = random_forest.feature_importances_
 feature_importances = pd.DataFrame({'feature': featurelist, 'importance': feature_importance_values})
-feature_importances.to_csv(os.getcwd() + '/output/featureimpLap.txt', sep='\t')
+feature_importances.to_csv(os.getcwd() + '/output/featureimpLap_feb.txt', sep='\t')
 
 #%%
 # Grid search

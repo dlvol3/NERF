@@ -16,7 +16,8 @@ from sklearn import cross_validation
 from sklearn.preprocessing import LabelEncoder
 from sklearn.datasets import make_classification
 import platform
-#%%
+
+# %%
 if platform.system() == 'Windows':
     # Windows in the lab
     gdscic = pd.read_csv('P:/VM/Drug/data/output/GDSCIC50.csv')
@@ -37,7 +38,7 @@ cipd.insert(0, 1)
 # subset two sets
 pdC = pdccle.iloc[:, cipd]
 # pdC.head(1)
-#%%
+# %%
 # -------------------------###
 # Get familiar with python DS
 # ref: https://www.kaggle.com/willkoehrsen/start-here-a-gentle-introduction
@@ -62,7 +63,7 @@ for col in pdC:
 
 print('%d columns were label encoded.' % le_count)
 
-#%%
+# %%
 # Exploratory Data Analysis(EDA)
 
 # Distribution of the target classes(columns)
@@ -72,14 +73,15 @@ pdC['SENRES'].head(4)
 pdC['SENRES'].plot.hist()
 plt.show()
 
-#%%
+
+# %%
 # Examine Missing values
 def missing_value_table(df):
     # Total missing values
     mis_val = df.isnull().sum()
 
     # Percentage of missing values
-    mis_val_percent = 100 * df.isnull().sum()/len(df)
+    mis_val_percent = 100 * df.isnull().sum() / len(df)
 
     # Make a table with the results
     mis_val_table = pd.concat([mis_val, mis_val_percent], axis=1)
@@ -96,7 +98,7 @@ def missing_value_table(df):
 
     # Print the summary
     print("Your selected data frame has " + str(df.shape[1]) + " columns.\n"
-          "There are " + str(mis_val_table_ren_columns.shape[0]) +
+                                                               "There are " + str(mis_val_table_ren_columns.shape[0]) +
           " columns that have missing values.")
 
     # Return the result
@@ -107,7 +109,7 @@ def missing_value_table(df):
 
 Missing_values = missing_value_table(pdC)
 Missing_values.head(10)
-#%%
+# %%
 # Column Types
 # Number of each type of column
 pdC.dtypes.value_counts()
@@ -115,7 +117,7 @@ pdC.dtypes.value_counts()
 # Check the number of the unique classes in each object column
 pdC.select_dtypes('object').apply(pd.Series.nunique, axis=0)
 
-#%%
+# %%
 # Correlations
 correlations = pdC.iloc[:, 0:200].corr()['SENRES'].sort_values(na_position='first')
 
@@ -125,14 +127,14 @@ print('\nMost Negative Correlations:\n', correlations.head(15))
 # Create Cross-validation and training/testing
 
 
-#%%
+# %%
 # Random forest 1st
 
 # Define the RF
 random_forest = RandomForestClassifier(n_estimators=400, random_state=123, max_features="sqrt",
                                        criterion="gini", oob_score=True, n_jobs=10, max_depth=12,
                                        verbose=0)
-#%%
+# %%
 # Drop SENRES
 
 train_labels = pdC.loc[:, "SENRES"]
@@ -148,8 +150,7 @@ features = list(train.columns)
 # train["SENRES"] = train_labels
 
 
-
-#%%
+# %%
 
 # RF 1st train 5 trees
 
@@ -175,9 +176,10 @@ feature_importances = pd.DataFrame({'feature': features, 'importance': feature_i
 # predictions
 #
 # confusion_matrix(test_labels, predictions)
-#%%
+# %%
 random_forest.oob_score_
-testC = train.iloc[[2, 4]]
+testC = train.iloc[[308]]
+
 # #
 # test_pred = random_forest.predict(testC)
 # test_labels = pdC.loc[[2, 4]:, "SENRES"]
@@ -188,8 +190,7 @@ testC = train.iloc[[2, 4]]
 #
 
 
-
-#%%
+# %%
 # from sklearn.tree import DecisionTreeClassifier
 # from sklearn.tree import export_graphviz
 # import graphviz
@@ -209,13 +210,13 @@ testC = train.iloc[[2, 4]]
 # tree1.tree_.impurity
 #
 # print(dotdata)
-#%%
+# %%
 # Check cross-validation result
 # from sklearn.model_selection import cross_val_score
 # print(np.mean(cross_val_score(random_forest, train, train_labels, cv=10)))
 # print(cross_val_score(random_forest, train, train_labels, cv=10))
 
-#%%
+# %%
 # Module for the network approaches
 # Extract the information in the decision tree
 #
@@ -232,7 +233,7 @@ testC = train.iloc[[2, 4]]
 # print(decision_p)
 
 
-#%%
+# %%
 # Create feature list, convert ENSG into gene symbols
 featurelist = train.columns.values.tolist()
 # Mygene convertion
@@ -245,7 +246,6 @@ con['symbol'] = np.where(con['notfound'] == True, con.index.values, con['symbol'
 featurelist_g = con.iloc[:, 3].reset_index()
 feag = featurelist_g.iloc[:, 1]
 # featurelist_g.loc[featurelist_g['query'] == 'ENSG00000229425'].index[0]
-
 
 
 feag.pop(47081)
@@ -262,11 +262,10 @@ fl = pd.DataFrame({
     'index': index
 })
 
-
 fls = fl.sort_values('score', ascending=False)
 
-pd_ff.loc[pd_ff["node_type"] == "decision_node",:].shape
-#%%
+pd_ff.loc[pd_ff["node_type"] == "decision_node", :].shape
+# %%
 # Other cancer
 # Uninarytract bladder 2, A549 lung 16, BT549 Breast 31
 pd_ff = flatforest(random_forest, testC)
@@ -274,13 +273,21 @@ pd_f = extarget(random_forest, testC, pd_ff)
 pd_nt = nerftab(pd_f)
 s3 = localnerf(pd_nt, 0)
 s5 = localnerf(pd_nt, 1)
+H322 = localnerf(pd_nt, 0)
 r3 = twonets(s3, "sample 3 in training", index, feag)
 r5 = twonets(s5, "sample 5 in training", index, feag)
+r322 = twonets(H322, "H322 in training", index, feag)
 
+# %%
+# Feature importance list
+
+feature_importance_values = random_forest.feature_importances_
+feature_importances = pd.DataFrame({'feature': featurelist, 'importance': feature_importance_values})
+feature_importances.to_csv(os.getcwd() + '/output/featureimpPD_feb.txt', sep='\t')
 
 # #############################################################################
 # Classification and ROC analysis
-#%%
+# %%
 X = train
 y = train_labels
 X = X.values
@@ -294,6 +301,7 @@ from itertools import cycle
 from sklearn import svm, datasets
 from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import StratifiedKFold
+
 # Run classifier with cross-validation and plot ROC curves
 cv = StratifiedKFold(n_splits=6)
 classifier = random_forest
@@ -343,11 +351,20 @@ plt.show()
 
 # TODO put the re-naming of the features after the extraction
 
-#%%
+# %%
 
 import matplotlib.pyplot as plt
 
-correlations = pdC.iloc[:, 1:len(pdC.columns)].corr()
+correlations = pdC.iloc[:, 1:200].corr()
 plt.matshow(pdC.iloc[:, 1:len(pdC.columns)].corr())
 plt.show()
 
+sol = (
+    correlations.where(np.triu(np.ones(correlations.shape), k=1).astype(np.bool)).stack().sort_values(ascending=False))
+
+# %% Correlation matrix adpot from kaggle
+# TODO Need some modification
+correlations = train_df[features].corr().abs().unstack().sort_values(kind="quicksort").reset_index()
+correlations = correlations[correlations['level_0'] != correlations['level_1']]
+correlations.head(10)
+correlations.tail(10)
